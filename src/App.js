@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Container, Row, Col, Button, Modal } from 'react-bootstrap'
 import './App.css'
+import AddData from './AddData'
 
 const App = () => {
 
@@ -11,6 +12,7 @@ const App = () => {
   
   const [isOpen, setIsOpen] = useState(false)
   const [ modalMessage, setModalMessage] = useState('')
+  const [ addModalOpen, setAddModalOpen] = useState(false)
 
   const handleDataClick = (e,i) => {
       
@@ -20,9 +22,9 @@ const App = () => {
         setIsOpen(true)  
       } else{
         if(e.target.id === 'NameCol') {
-          document.getElementById('table').childNodes[i].childNodes[0].style.backgroundColor = '#F2F4FF'  
+          document.getElementById('table').childNodes[i+1].childNodes[0].style.backgroundColor = '#F2F4FF'  
         }else if( e.target.id === 'RelationCol') {
-          document.getElementById('table').childNodes[i].childNodes[2].style.backgroundColor = '#F2F4FF'
+          document.getElementById('table').childNodes[i+1].childNodes[2].style.backgroundColor = '#F2F4FF'
         }
   
         setFindRelation(arr => [...arr, e.target.textContent])
@@ -37,7 +39,7 @@ const App = () => {
   const getRelation = (e) => {
     e.preventDefault()
     if (findRelation.length === 2) {
-      axios.post('http://localhost:8080/GetRelation', { findRelation })
+      axios.post('https://relation-builder-backend.herokuapp.com/GetRelation', { findRelation })
         .then(res => {
           console.log(res)
           setResult(res.data)
@@ -52,7 +54,7 @@ const App = () => {
   }
 
   useEffect(() => {
-    axios.get('http://localhost:8080/GetData')
+    axios.get('https://relation-builder-backend.herokuapp.com/GetData')
       .then(res => {
         console.log(res.data.data)
         setData(res.data.data)
@@ -60,7 +62,7 @@ const App = () => {
       .catch(err => {
         console.log(err.message)
       })
-  }, [])
+  }, [addModalOpen])
 
   return (
     <>
@@ -69,7 +71,7 @@ const App = () => {
           <h3>Select any Two persons to find Reltionship degree</h3>
           {data.map((ele, i) => {
             return (
-              <Row  key={i}>
+              <Row className='tableRow'  key={i}>
                 <Col id='NameCol' className='nameCol' onClick={(e) => handleDataClick(e, i)}>{ele.name}</Col>
                 <Col >{ele.tag}</Col>
                 <Col id='RelationCol' className='nameCol' onClick={(e) => handleDataClick(e, i)}>{ele.relation}</Col>               
@@ -77,9 +79,10 @@ const App = () => {
             )
           })
           }
-          <div>
+          <div style={{ display: 'flex', justifyContent: 'space-around'}}>
             <Button onClick={(e) => getRelation(e)}>Find relation</Button>
-          </div>          
+            <Button onClick={() => setAddModalOpen(true)}>Add Relation</Button>
+          </div>                    
           <div>
             {result && 
             <>
@@ -116,6 +119,7 @@ const App = () => {
           </Modal.Footer>
         </Modal.Header>
       </Modal>
+      <AddData modalOpen={addModalOpen} setAddModalOpen={setAddModalOpen} setModalMessage={setModalMessage} setIsOpen={setIsOpen}/>
     </>
   )
 }
